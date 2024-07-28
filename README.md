@@ -1,2 +1,10 @@
 # Data_Availability_Manuscript
 Data analyzed and generated for HFF and HMF genetic study.
+# Genome-Wide Association Study of Haploid Female Fertility (HFF) and Haploid Male Fertility (HMF) in BS39-Derived Doubled Haploid Lines
+
+# Key message
+Restoration of haploid female and haploid male fertility without colchicine is feasible. Three SNPs and eight gene models for HFF, and one SNP and gene model for HMF were identified.
+# Abstract 
+Doubled haploid (DH) breeding accelerates the development of elite inbred lines and facilitates the incorporation of exotic germplasm, offering a powerful tool for maize improvement. Traditional DH breeding relies on colchicine to induce haploid genome doubling. Colchicine is toxic, and its application is labour-intensive, with most genotypes recording low genome doubling rates (10% to 30%). This study investigates spontaneous haploid genome doubling (SHGD) as a safer and more efficient alternative to colchicine. We evaluated the effectiveness of SHGD in restoring haploid female fertility (HFF) and haploid male fertility (HMF) without colchicine. Using genome-wide association studies (GWAS), we identified genomic regions influencing HFF and HMF. The plant materials included the BS39-haploid isogenic lines (HILs) and BS39-SHGD-haploid isogenic lines (HILs). Our results revealed significant SNP associations for both traits, with candidate genes involved in cell cycle regulation, cytoskeletal organization, and hormonal signalling. Analysis of variance (ANOVA) revealed significant variation in HFF across haploids and two environments. Similarly, HMF showed substantial differences across haploids and between the two environments. Spearman correlation between HFF and HMF showed no correlation (r = -0.03) between the two traits. HFF showed high heritability (0.8), indicating strong genetic control, whereas HMF displayed moderate heritability (0.5), suggesting additional environmental influences. The findings underscore the potential of SHGD to enhance DH breeding efficiency and support the development of new maize varieties tailored to diverse agricultural needs.
+
+
