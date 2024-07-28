@@ -1,0 +1,170 @@
+
+library(lme4)
+library(ggResidpanel)
+library(dplyr)
+library(ggplot2)
+library(emmeans)
+library(arm)
+library(tidyverse)
+library(MASS)
+library("car")
+library(qqman)
+library(arm)
+library(bestNormalize)
+
+
+setwd("C:/Users/mfakude/OneDrive - Iowa State University/Desktop/HFF_4")
+
+#Read in HFF data
+
+data1 <- read.csv("./HFF4.csv")
+data1$PI = as.factor(data1$PI)
+data1$Rep = as.factor(data1$Rep)
+data1$HFF = as.numeric(data1$HFF)
+
+
+hist(data1$HFF)
+hist(data1$HFF, col = "Cyan", xlab = "Haploid Female Fertility", main = "Trait distribution")
+Boxplot(data1$HFF, col = "Cyan", ylab = "Haploid Female Fertility", main = "Haploid Female Fertility")
+
+
+# Check for assumptions: P-Value less than 0.05 violates assumption. Can be seen with histogram
+shapiro.test(data1$HFF) 
+
+
+
+# the code below will find a transformation that works for your data
+bestNormalize::bestNormalize(data1$HFF) # read its output
+tmp <- bestNormalize::bestNormalize(data1$HFF)
+shapiro.test(tmp$chosen_transform$x.t) # best transformation
+data1$transformed_data <- tmp$chosen_transform$x.t # adding transformed data
+hist(data1$transformed_data) # better?
+hist(data1$transformed_data, col = "Cyan", xlab = "Haploid Female Fertility", main = "Trait distribution")
+
+# ANOVA model
+str(data1)
+table(data1$PI, data1$Rep)
+model <- lm(transformed_data~Rep+PI, data = data1)
+#model <- lmer(HFF ~ Genotype + (1 | Rep), data = data1) 
+
+ggResidpanel::resid_panel(model)
+anova(model) 
+blues <- data.frame(emmeans::emmeans(model,'PI')) # getting empirical BLUEs (least squares estimates)
+# which in plain English is just the "adjusted means"
+#summary(glm_eblues_GWAS)
+#write.csv(blues, file = "blues.csv", row.names = FALSE)
+
+Geno.data = read.delim("./filtered_genotype_data1.txt", sep ='\t',header = FALSE)
+
+# GWAS
+#source("http://zzlab.net/GAPIT/GAPIT.library.R")
+#source("http://zzlab.net/GAPIT/gapit_functions.txt")
+
+# Load the GAPIT package
+library(GAPIT3)
+
+
+myGAPIT=GAPIT(
+  Y=blues[,c(1,2)],
+  G=Geno.data,
+  PCA.total=3,
+  model=c("FarmCPU", "MLMM"),
+  Multiple_analysis=TRUE, SNP.MAF = 0.01,
+  file.output=T)
+
+#list.files()
+
+##############################################BONFERRONI#########################################################
+install.packages("qqman")
+library(qqman)
+pdf("manhattan_plots1_2.pdf", width = 10, height = 8)  # Adjust width and height as needed
+par(mfrow = c(2, 1))
+FarmCPU1 = read.csv("./GAPIT.Association.GWAS_Results.FarmCPU.emmean.csv", header = TRUE)
+manhattan(x = FarmCPU1, chr = "Chr", bp = "Pos", p = "P.value", snp = "SNP", annotatePval = 0.05,
+          main = "FarmCPU.Haploid Female Fertility", col = c("green","blue"))
+
+
+
+MLMM1 = read.csv("./GAPIT.Association.GWAS_Results.MLMM.emmean.csv", header = TRUE)
+manhattan(x = MLMM1, chr = "Chr", bp = "Pos", p = "P.value", snp = "SNP", annotatePval = 0.05,
+          main = "MLMM.Haploid Female Fertility", col = c("green","blue"))
+dev.off()
+############################################## SIMPLEM#################################################################
+pdf("manhattan_plots3.pdf", width = 10, height = 8)  # Adjust width and height as needed
+
+# Read the CSV file
+FarmCPU1 <- read.csv("./GAPIT.Association.GWAS_Results.FarmCPU.emmean.csv", header = TRUE)
+
+# Define your significance threshold 'm'
+m <- 4.857  # Adjust this value as needed
+
+# Filter the data based on the significance threshold 'm'
+significant_snps <- FarmCPU1[FarmCPU1$P.value <= m, ]
+
+# Plot Manhattan plot with filtered significant SNPs
+manhattan(x = significant_snps, chr = "Chr", bp = "Pos", p = "P.value", snp = "SNP", annotatePval = 4.857,
+          main = "FarmCPU Haploid Female Fertility", col = c("cyan", "purple"))
+
+dev.off() # Don't forget to close the PDF device after plotting
+
+
+pdf("manhattan_plots4.pdf", width = 10, height = 8)  # Adjust width and height as needed
+MLMM1 <- read.csv("./GAPIT.Association.GWAS_Results.MLMM.emmean.csv", header = TRUE)
+m <- 4.857  # Adjust this value as needed
+significant_snps <- MLMM1[MLMM1$P.value <= m, ]
+manhattan(x = significant_snps, chr = "Chr", bp = "Pos", p = "P.value", snp = "SNP", annotatePval = 4.857,
+          main = "MLMM Haploid Female Fertility", col = c("cyan", "purple"))
+dev.off() # Don't forget to close the PDF device after plotting
+
+
+#################################################CMPLOT SIMPLEM####################################################################
+
+install.packages("cmplot")
+# Load required libraries
+library(CMplot)
+library(survival)
+
+
+pdf("manhattan_plots7pdf", width = 10, height = 8)  # Adjust width and height as needed
+
+# Read GWAS results data
+gwas_results <- read.csv("GAPIT.Association.GWAS_Results.FarmCPU.emmean.csv", header = TRUE)
+tbl <- gwas_results %>% 
+  rename(BP = Pos, P = P.value, CHR = Chr)
+
+# Define your significance threshold 'm'
+m <- 4.857  # Adjust this value as needed
+
+# Filter the data based on the significance threshold 'm'
+significant_snps <- tbl[tbl$P <= m, ]
+
+# Create Manhattan plot with cyan and purple colors
+manhattan(significant_snps, col = c("cyan", "purple"))
+
+# Add significance threshold line
+abline(h = -log10(m), col = "red", lty = 2)
+
+dev.off() # Don't forget to close the PDF device after plotting
+
+
+pdf("manhattan_plots8pdf", width = 10, height = 8)  # Adjust width and height as needed
+
+# Read GWAS results data
+gwas_results <- read.csv("GAPIT.Association.GWAS_Results.MLMM.emmean.csv", header = TRUE)
+tbl <- gwas_results %>% 
+  rename(BP = Pos, P = P.value, CHR = Chr)
+
+# Define your significance threshold 'm'
+m <- 4.857  # Adjust this value as needed
+
+# Filter the data based on the significance threshold 'm'
+significant_snps <- tbl[tbl$P <= m, ]
+
+# Create Manhattan plot with cyan and purple colors
+manhattan(significant_snps, col = c("cyan", "purple"))
+
+# Add significance threshold line
+abline(h = -log10(m), col = "red", lty = 2)
+
+dev.off() # Don't forget to close the PDF device after plotting
+
